@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Customer Dashboard - Food App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #121212; color: #fff; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Sidebar */
+        .sidebar { width: 260px; background: #181818; border-right: 1px solid #333; display: flex; flex-direction: column; }
+        .sidebar-brand { padding: 25px; font-size: 22px; font-weight: bold; color: #ff5e62; border-bottom: 1px solid #333; text-align: center; }
+        .sidebar-menu { list-style: none; padding: 20px 0; flex: 1; overflow-y: auto; }
+        .sidebar-menu li { padding: 14px 25px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px; color: #aaa; font-size: 14px; }
+        .sidebar-menu li:hover, .sidebar-menu li.active { background: #ff5e62; color: white; }
+        .sidebar-logout { padding: 20px 25px; border-top: 1px solid #333; }
+        .sidebar-logout a { color: #ff4d4d; text-decoration: none; display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 14px; }
+
+        /* Main Content */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; background: #121212; }
+        .header { padding: 20px 30px; background: #181818; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
+        .header h2 { font-size: 20px; color: #fff; }
+        
+        .content-body { padding: 30px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Alert Messages with Fade-out transition */
+        .alert { background: #1b4d3e; color: #4ade80; padding: 12px 20px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #22c55e; font-size: 14px; display: flex; align-items: center; gap: 10px; transition: opacity 0.5s ease; }
+
+        /* Tables & Cards */
+        table { width: 100%; border-collapse: collapse; background: #1a1a1a; border-radius: 8px; overflow: hidden; border: 1px solid #333; margin-bottom: 20px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #333; font-size: 14px; }
+        th { background: #222; color: #ff5e62; font-weight: 600; }
+        tr:hover { background: #222; }
+
+        /* Menu Scroll Navigation */
+        .cat-scroll-nav {
+            display: flex; gap: 12px; overflow-x: auto; padding: 15px 0; margin-bottom: 20px;
+            border-bottom: 1px solid #333; position: sticky; top: 0; background: #121212; z-index: 10;
+        }
+        .cat-scroll-nav::-webkit-scrollbar { height: 4px; }
+        .cat-scroll-nav::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
+        .cat-scroll-nav a {
+            color: #fff; text-decoration: none; background: #262626; padding: 8px 18px;
+            border-radius: 20px; font-size: 14px; white-space: nowrap; transition: 0.3s; border: 1px solid #333;
+        }
+        .cat-scroll-nav a:hover { background: #ff5e62; color: white; border-color: #ff5e62; }
+
+        .menu-scroll-area { height: 65vh; overflow-y: auto; scroll-behavior: smooth; padding-right: 10px; }
+        .menu-scroll-area::-webkit-scrollbar { width: 6px; }
+        .menu-scroll-area::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-brand">Food Customer</div>
+        <ul class="sidebar-menu">
+            <li class="active" onclick="switchTab(event, 'menu-tab')"><i class="fa-solid fa-utensils"></i> Browse Menu</li>
+            <li onclick="switchTab(event, 'cart-tab')"><i class="fa-solid fa-cart-shopping"></i> My Cart</li>
+            <li onclick="switchTab(event, 'orders-tab')"><i class="fa-solid fa-box"></i> My Orders & Feedback</li>
+        </ul>
+        <div class="sidebar-logout">
+            <a href="{% url 'logout_url' %}"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <h2 id="page-title">Browse Menu</h2>
+            <span>Welcome, {{ request.user.username }}</span>
+        </div>
+
+        <div class="content-body">
+            
+            <!-- Success Message Notification -->
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert" id="success-alert">
+                    <i class="fa-solid fa-circle-check"></i> {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- 1. Menu Tab -->
+            <div id="menu-tab" class="tab-content active">
+                <h3>Delicious Food Menu</h3>
+                <div class="cat-scroll-nav">
+                    {% for cat in categories %}
+                    <a href="#cat-{{ cat.id }}">{{ cat.name }}</a>
+                    {% endfor %}
+                </div>
+                <div class="menu-scroll-area">
+                    {% for cat in categories %}
+                    <div id="cat-{{ cat.id }}" style="padding-top: 15px; margin-bottom: 40px;">
+                        <h4 style="color: #ff5e62; font-size: 18px; border-bottom: 1px dashed #333; padding-bottom: 10px; margin-bottom: 20px;">
+                            <i class="fa-solid fa-utensils"></i> {{ cat.name }}
+                        </h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px;">
+                            {% for prod in products %}
+                                {% if prod.sub_category and prod.sub_category.category.id == cat.id %}
+                                <div style="background: #1a1a1a; border: 1px solid #333; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: space-between;">
+                                    <div>
+                                        {% if prod.image %}
+                                        <img src="{{ prod.image.url }}" alt="{{ prod.name }}" style="width: 100%; height: 140px; object-fit: cover; display: block;">
+                                        {% else %}
+                                        <div style="width: 100%; height: 140px; background: #262626; display: flex; align-items: center; justify-content: center; color: #777; font-size: 13px;">No Image</div>
+                                        {% endif %}
+                                        <div style="padding: 15px;">
+                                            <h4 style="color: #fff; font-size: 16px; margin-bottom: 5px;">{{ prod.name }}</h4>
+                                            <p style="color: #aaa; font-size: 13px; margin-bottom: 10px;">{{ prod.sub_category.name }}</p>
+                                            <span style="color: #ff5e62; font-weight: bold; font-size: 16px;">₹{{ prod.price }}</span>
+                                        </div>
+                                    </div>
+                                    <div style="padding: 10px 15px; background: #161616; border-top: 1px solid #333; display: flex; gap: 8px;">
+                                        <!-- Add to Cart Form -->
+                                        <form method="POST" style="flex: 1;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="form_type" value="add_to_cart">
+                                            <input type="hidden" name="product_id" value="{{ prod.id }}">
+                                            <button type="submit" style="width: 100%; background: #262626; color: #fff; border: 1px solid #444; padding: 6px; border-radius: 4px; font-size: 12px; cursor: pointer; font-weight: bold;">
+                                                <i class="fa-solid fa-cart-plus"></i> Cart
+                                            </button>
+                                        </form>
+                                        <!-- Direct Order Form -->
+                                        <form method="POST" style="flex: 1;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="form_type" value="direct_order">
+                                            <input type="hidden" name="product_id" value="{{ prod.id }}">
+                                            <button type="submit" style="width: 100%; background: #ff5e62; color: #fff; border: none; padding: 6px; border-radius: 4px; font-size: 12px; cursor: pointer; font-weight: bold;">
+                                                <i class="fa-solid fa-bag-shopping"></i> Order
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 2. Cart Tab -->
+            <div id="cart-tab" class="tab-content">
+                <h3>My Shopping Cart</h3>
+                <br>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in cart_items %}
+                        <tr>
+                            <td>{{ item.product.name }}</td>
+                            <td>₹{{ item.product.price }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td style="color: #ff5e62; font-weight: bold;">₹{{ item.item_total }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" style="text-align: center; color: #777;">Your cart is empty.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+                {% if cart_items %}
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <!-- Clear Cart Button -->
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="form_type" value="clear_cart">
+                        <button type="submit" style="background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 15px;" onclick="return confirm('Are you sure you want to clear your cart?');">
+                            <i class="fa-solid fa-trash"></i> Clear Cart
+                        </button>
+                    </form>
+                    
+                    <!-- Checkout Button -->
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="form_type" value="checkout">
+                        <button type="submit" style="background: #22c55e; color: white; border: none; padding: 10px 25px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 15px;">
+                            Place Order
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 3. Orders & Feedback Tab -->
+            <div id="orders-tab" class="tab-content">
+                <h3>My Orders & Feedback</h3>
+                <br>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Items</th>
+                            <th>Total Amount</th>
+                            <th>Status / Action</th>
+                            <th>Feedback / Rating</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ord in orders %}
+                        <tr>
+                            <td>#{{ ord.id }}</td>
+                            <td>
+                                <ul style="list-style: none; padding: 0; margin: 0; font-size: 12px; color: #ccc;">
+                                    {% for item in ord.items.all %}
+                                    <li>{{ item.quantity }} x {{ item.product.name }} (₹{{ item.product.price }})</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td style="color: #ff5e62; font-weight: bold;">₹{{ ord.total_amount }}</td>
+                            <td>
+                                <div style="display: flex; flex-direction: column; gap: 6px;">
+                                    <span style="font-size: 11px; padding: 4px 8px; border-radius: 4px; font-weight: bold; width: fit-content; background: #262626; color: {% if ord.status == 'Delivered' %}#4ade80{% elif ord.status == 'Pending' %}#facc15{% elif ord.status == 'Cancelled' %}#ef4444{% else %}#60a5fa{% endif %};">
+                                        {{ ord.status }}
+                                    </span>
+                                    {% if ord.status|lower == 'pending' %}
+                                    <form method="POST">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="form_type" value="cancel_order">
+                                        <input type="hidden" name="order_id" value="{{ ord.id }}">
+                                        <button type="submit" style="background: #ef4444; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold;" onclick="return confirm('Are you sure you want to cancel this order?');">
+                                            <i class="fa-solid fa-ban"></i> Cancel Order
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                {% if ord.status == 'Delivered' %}
+                                    {% if ord.feedback_obj %}
+                                        <!-- Submitted Feedback Display -->
+                                        <div style="background: #161616; padding: 8px; border-radius: 6px; border: 1px solid #333; font-size: 12px;">
+                                            <span style="color: #facc15;">
+                                                {% if ord.feedback_obj.rating == '5' %}⭐⭐⭐⭐⭐{% elif ord.feedback_obj.rating == '4' %}⭐⭐⭐⭐{% elif ord.feedback_obj.rating == '3' %}⭐⭐⭐{% elif ord.feedback_obj.rating == '2' %}⭐⭐{% else %}⭐{% endif %}
+                                                ({{ ord.feedback_obj.rating }}/5)
+                                            </span>
+                                            {% if ord.feedback_obj.comment %}
+                                            <p style="color: #aaa; margin-top: 4px;">{{ ord.feedback_obj.comment }}</p>
+                                            {% endif %}
+                                            <span style="color: #4ade80; font-size: 10px; display: block; margin-top: 4px;"><i class="fa-solid fa-check"></i> Review Submitted</span>
+                                        </div>
+                                    {% else %}
+                                        <!-- Review Form Input Box -->
+                                        <form method="POST" style="display: flex; flex-direction: column; gap: 5px;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="form_type" value="submit_feedback">
+                                            <input type="hidden" name="order_id" value="{{ ord.id }}">
+                                            <select name="rating" style="padding: 4px; background: #1a1a1a; color: #facc15; border: 1px solid #444; border-radius: 4px; font-size: 12px;">
+                                                <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+                                                <option value="4">⭐⭐⭐⭐ (4)</option>
+                                                <option value="3">⭐⭐⭐ (3)</option>
+                                                <option value="2">⭐⭐ (2)</option>
+                                                <option value="1">⭐ (1)</option>
+                                            </select>
+                                            <input type="text" name="comment" placeholder="Write a review..." style="padding: 5px; background: #1a1a1a; color: white; border: 1px solid #444; border-radius: 4px; font-size: 12px;">
+                                            <button type="submit" style="background: #ff5e62; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">Submit Review</button>
+                                        </form>
+                                    {% endif %}
+                                {% else %}
+                                    <span style="color: #777; font-size: 12px;">Available after delivery</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" style="text-align: center; color: #777;">No orders placed yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function switchTab(evt, tabName) {
+            let tabs = document.getElementsByClassName("tab-content");
+            for (let t of tabs) { t.classList.remove("active"); }
+            
+            let menuItems = document.querySelectorAll(".sidebar-menu li");
+            for (let m of menuItems) { m.classList.remove("active"); }
+            
+            let selectedTab = document.getElementById(tabName);
+            if (selectedTab) { selectedTab.classList.add("active"); }
+            
+            let currentMenu;
+            if (evt) {
+                currentMenu = evt.currentTarget;
+            } else {
+                currentMenu = document.querySelector(`[onclick*="${tabName}"]`);
+            }
+            if (currentMenu) {
+                currentMenu.classList.add("active");
+                document.getElementById("page-title").innerText = currentMenu.innerText.trim();
+            }
+            localStorage.setItem("active_customer_tab", tabName);
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            let savedTab = localStorage.getItem("active_customer_tab");
+            if (savedTab && document.getElementById(savedTab)) {
+                switchTab(null, savedTab);
+            }
+
+            // Auto-dismiss success message after 4 seconds
+            let alertBox = document.getElementById("success-alert");
+            if (alertBox) {
+                setTimeout(function() {
+                    alertBox.style.opacity = '0';
+                    setTimeout(function() { alertBox.style.display = 'none'; }, 500);
+                }, 4000);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Food App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { 
+            background: url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1920&auto=format&fit=crop') no-repeat center center fixed; 
+            background-size: cover;
+            display: flex; justify-content: center; align-items: center; height: 100vh; position: relative;
+        }
+        /* Background overlay ko light kar diya hai taaki image saaf dikhe */
+        body::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(2px); z-index: 1;
+        }
+        .main-card {
+            position: relative; z-index: 2; width: 850px; height: 480px;
+            background: rgba(18, 18, 18, 0.95); border-radius: 16px; display: flex;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8); overflow: hidden; border: 1px solid #333;
+        }
+        .left-side {
+            flex: 1.1; background: #181818; padding: 30px; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden;
+        }
+        .logo-area { font-size: 26px; font-weight: bold; color: white; display: flex; align-items: center; gap: 5px; }
+        .logo-area span { color: #ff5e62; }
+        .food-showcase {
+            text-align: center; margin: auto;
+        }
+        .food-showcase img {
+            max-width: 280px; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5));
+        }
+        .right-side {
+            flex: 0.9; padding: 40px; display: flex; flex-direction: column; justify-content: center; background: #161616;
+        }
+        h2 { color: white; margin-bottom: 20px; font-size: 22px; text-align: center; font-weight: 600; }
+        
+        .input-container {
+            display: flex; align-items: center; background: #1e1e1e; border: 1px solid #333; border-radius: 6px; overflow: hidden; margin-bottom: 15px;
+        }
+        .input-container:focus-within { border-color: #ff5e62; }
+        .icon-box {
+            padding: 0 12px; color: #777; background: #181818; height: 42px; display: flex; align-items: center; border-right: 1px solid #333; font-size: 14px;
+        }
+        .input-container input {
+            flex: 1; background: transparent; border: none; padding: 10px 12px; color: white; font-size: 13px; outline: none;
+        }
+        .eye-box {
+            padding: 0 12px; background: #222; height: 42px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #777; border-left: 1px solid #333; transition: 0.2s;
+        }
+        .eye-box:hover { color: white; background: #2a2a2a; }
+
+        .btn-submit {
+            width: 100%; padding: 11px; background: #ff5e62; border: none; border-radius: 6px; color: white; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 5px;
+        }
+        .btn-submit:hover { background: #e04b50; }
+        .bottom-text { margin-top: 15px; text-align: center; color: #888; font-size: 13px; }
+        .bottom-text a { color: #ff5e62; text-decoration: none; font-weight: bold; }
+        .error-msg { color: #ff4d4d; margin-bottom: 12px; font-size: 13px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="main-card">
+        <div class="left-side">
+            <div class="logo-area">food<span>.</span></div>
+            <div class="food-showcase">
+                <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=600&auto=format&fit=crop" alt="Delicious Food">
+            </div>
+        </div>
+        <div class="right-side">
+            <h2>Login</h2>
+            {% if error %}
+                <div class="error-msg">{{ error }}</div>
+            {% endif %}
+            <form method="POST">
+                {% csrf_token %}
+                <div class="input-container">
+                    <div class="icon-box"><i class="fa-solid fa-user"></i></div>
+                    <input type="text" name="username" placeholder="Username or Email" autocomplete="off" required>
+                </div>
+                
+                <div class="input-container">
+                    <div class="icon-box"><i class="fa-solid fa-lock"></i></div>
+                    <input type="password" name="password" id="password" placeholder="Password" autocomplete="new-password" required>
+                    <div class="eye-box" id="togglePassword">
+                        <i class="fa-solid fa-eye" id="eyeIcon"></i>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">Sign In</button>
+            </form>
+            <div class="bottom-text">
+                Don't have an account? <a href="{% url 'register_url' %}">Register for free</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const togglePassword = document.querySelector('#togglePassword');
+        const password = document.querySelector('#password');
+        const eyeIcon = document.querySelector('#eyeIcon');
+
+        togglePassword.addEventListener('click', function () {
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            eyeIcon.classList.toggle('fa-eye');
+            eyeIcon.classList.toggle('fa-eye-slash');
+        });
+    </script>
+</body>
+</html>
