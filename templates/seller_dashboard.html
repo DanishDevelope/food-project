@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Seller Dashboard - Food App</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -48,6 +49,41 @@
         .menu-scroll-area { height: 65vh; overflow-y: auto; scroll-behavior: smooth; padding-right: 10px; }
         .menu-scroll-area::-webkit-scrollbar { width: 6px; }
         .menu-scroll-area::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
+        /* Mobile Responsive Fix for Dashboards */
+@media (max-width: 768px) {
+    /* Agar page par koi main container ya wrapper hai, uski width 100% karein */
+    .container, .main-content, .dashboard-container {
+        width: 100% !important;
+        padding: 10px !important;
+        margin: 0 !important;
+    }
+
+    /* Sidebars ko mobile par upar ya full-width karne ke liye */
+    .sidebar, .left-panel {
+        width: 100% !important;
+        height: auto !important;
+        position: relative !important;
+    }
+
+    /* Tables ko mobile par scrollable banayein taaki data cut na ho */
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+        width: 100%;
+    }
+
+    /* Cards ya grid items ko ek ke niche ek (column) karein */
+    .cards-grid, .row, .stats-container {
+        display: flex;
+        flex-direction: column !important;
+        gap: 15px;
+    }
+
+    .card, .stat-box {
+        width: 100% !important;
+    }
+}
     </style>
 </head>
 <body>
