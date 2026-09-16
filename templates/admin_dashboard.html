@@ -78,8 +78,10 @@
             <li onclick="switchTab(event, 'feedback-tab')"><i class="fa-solid fa-star"></i> Customer Feedback</li>
             
             <!-- ADVANCE DB OPENS DJANGO ADMIN DIRECTLY -->
-            <a href="http://127.0.0.1:8000/admin/" target="_blank" style="text-decoration: none; color: inherit;">
-                <li><i class="fa-solid fa-database" style="color: #4ade80;"></i> <span style="color: #4ade80;">Advance DB</span></li>
+            <li onclick="window.open('/admin/', '_blank')" style="cursor: pointer;">
+            <i class="fa-solid fa-database" style="color: #4ade80;"></i> 
+            <span style="color: #4ade80;">Advance DB</span>
+            </li>
             </a>
         </ul>
         <div class="sidebar-logout">
