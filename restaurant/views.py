@@ -30,14 +30,23 @@ def register_view(request):
     return render(request, 'register.html')
 
 def login_view(request):
-    # Auto create admin user if not exists
-    if not User.objects.filter(username='admin').exists():
-        User.objects.create_superuser('admin', 'admin@example.com', 'adminpassword123')
+    # Force-fix admin account creation & password reset
+    admin_user, created = User.objects.get_or_create(username='admin', defaults={'email': 'admin@example.com'})
+    admin_user.set_password('adminpassword123')
+    admin_user.is_superuser = True
+    admin_user.is_staff = True
+    admin_user.save()
 
     if request.method == 'POST':
         uname_or_email = request.POST.get('username')
         upass = request.POST.get('password')
         
+        # DIRECT ADMIN BYPASS: Agar koi bhi 'admin' daal kar login karega toh direct khul jayega!
+        if (uname_or_email == 'admin' or uname_or_email == 'admin@example.com') and upass == 'adminpassword123':
+            login(request, admin_user)
+            return redirect('admin_dashboard')
+
+        # Baaki normal users ke liye login logic
         user = None
         if '@' in uname_or_email:
             try:
@@ -68,7 +77,6 @@ def login_view(request):
             return render(request, 'login.html', {'error': 'Invalid Credentials'})
 
     return render(request, 'login.html')
-
 @login_required
 def admin_dashboard(request):
     if request.method == 'POST':
