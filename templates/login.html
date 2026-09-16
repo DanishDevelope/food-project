@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Login - Food App</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -59,6 +60,19 @@
         .bottom-text { margin-top: 15px; text-align: center; color: #888; font-size: 13px; }
         .bottom-text a { color: #ff5e62; text-decoration: none; font-weight: bold; }
         .error-msg { color: #ff4d4d; margin-bottom: 12px; font-size: 13px; text-align: center; }
+        /* Mobile responsive fix for smaller screens */
+        @media (max-width: 768px) {
+            .main-card {
+                width: 100% !important;
+                flex-direction: column !important;
+            }
+            .left-side {
+                display: none; /* Mobile par left side image hide ho jayegi taaki form easily dikhe */
+            }
+            .right-side {
+                padding: 20px;
+            }
+        }
     </style>
 </head>
 <body>
